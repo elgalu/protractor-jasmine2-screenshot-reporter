@@ -314,6 +314,7 @@ function Jasmine2ScreenShotReporter(opts) {
   opts.showConfiguration = opts.hasOwnProperty('showConfiguration') ? opts.showConfiguration : true;
   opts.reportTitle = opts.hasOwnProperty('reportTitle') ? opts.reportTitle : 'Report';
   opts.cleanDestination = opts.hasOwnProperty('cleanDestination') ? opts.cleanDestination : true;
+  opts.throwTakeScreenShotError = opts.hasOwnProperty('throwTakeScreenShotError') ? opts.throwTakeScreenShotError : true;
 
   // TODO: proper nesting -> no need for magic
 
@@ -561,6 +562,13 @@ function Jasmine2ScreenShotReporter(opts) {
             writeScreenshot(png, spec.filename[key]);
           });
         });
+      }, function(err) {
+        if (err) {
+          console.error('Error taking screenshot, session probabaly closed.');
+          if (opts.throwTakeScreenShotError) {
+            throw err;
+          }
+        }
       });
     });
   };
