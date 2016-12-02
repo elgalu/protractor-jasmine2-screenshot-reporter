@@ -564,7 +564,7 @@ function Jasmine2ScreenShotReporter(opts) {
         });
       }, function(err) {
         if (err) {
-          console.error('Error taking screenshot, session probabaly closed.');
+          console.error('Error taking screenshot, session probably closed.');
           if (opts.throwTakeScreenShotError) {
             throw err;
           }
