@@ -175,6 +175,8 @@ function Jasmine2ScreenShotReporter(opts) {
       '</li>'
   );
 
+  var lastTakenScrPath = '<not available>';
+
   // write data into opts.dest as filename
   var writeScreenshot = function (data, filename) {
     var stream = fs.createWriteStream(opts.dest + filename);
@@ -560,11 +562,20 @@ function Jasmine2ScreenShotReporter(opts) {
               throw new Error('Could not create directory for ' + screenshotPath);
             }
             writeScreenshot(png, spec.filename[key]);
+            if (spec.status === 'failed') {
+              if (process.env.BUILD_URL) {
+                lastTakenScrPath = process.env.BUILD_URL + 'artifact/' + opts.dest + spec.filename[key];
+              } else {
+                lastTakenScrPath = opts.dest + spec.filename[key];
+              }
+              console.log('Screenshot: "' + lastTakenScrPath + '"');
+            }
           });
         });
       }, function(err) {
         if (err) {
           console.error('Error taking screenshot, session probably closed.');
+          console.log('Previous screenshot taken: ' + lastTakenScrPath);
           if (opts.throwTakeScreenShotError) {
             throw err;
           }
