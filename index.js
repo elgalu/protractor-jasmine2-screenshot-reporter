@@ -596,7 +596,7 @@ function Jasmine2ScreenShotReporter(opts) {
           if (opts.throwTakeScreenShotError) {
             throw err;
           }
-          // self.finalizeReporting();
+          self.finalizeReporting();
         }
       });
     });
