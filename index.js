@@ -449,7 +449,7 @@ function Jasmine2ScreenShotReporter(opts) {
   };
 
   this.afterLaunch = function(callback) {
-    console.log('Closing report');
+    // console.log('Closing report');
 
     fs.appendFile(
         path.join(opts.dest, opts.filename),
