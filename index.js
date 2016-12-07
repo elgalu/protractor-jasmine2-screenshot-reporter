@@ -297,6 +297,18 @@ function Jasmine2ScreenShotReporter(opts) {
     });
   };
 
+  var buildReportOrScrInlineUrl = function(relPath) {
+    var reportDest;
+
+    if (process.env.BUILD_URL) {
+      reportDest = process.env.BUILD_URL + 'artifact/';
+    } else {
+      reportDest = 'file://' + process.cwd() + '/';
+    }
+
+    return reportDest + relPath;
+  };
+
   // TODO: more options
   opts          = opts || {};
   opts.preserveDirectory = opts.preserveDirectory || false;
@@ -415,13 +427,8 @@ function Jasmine2ScreenShotReporter(opts) {
   }
 
   this.beforeLaunch = function(callback) {
-    var reportDest;
-    if (process.env.BUILD_URL) {
-      reportDest = process.env.BUILD_URL + 'artifact/' + path.join(opts.dest, opts.filename);
-    } else {
-      reportDest = path.join(opts.dest, opts.filename);
-    }
-    console.log('Report destination:', reportDest);
+    console.log('Report destination: ' +
+      buildReportOrScrInlineUrl(path.join(opts.dest, opts.filename)));
 
     var cssLinks = getCssLinks(opts.userCss);
     var summaryQuickLinks = opts.showQuickLinks ? addQuickLinks(): '';
@@ -454,14 +461,9 @@ function Jasmine2ScreenShotReporter(opts) {
     });
   };
 
-  this.afterLaunch = function(callback) {
-    var reportDest;
-    if (process.env.BUILD_URL) {
-      reportDest = process.env.BUILD_URL + 'artifact/' + path.join(opts.dest, opts.filename);
-    } else {
-      reportDest = path.join(opts.dest, opts.filename);
-    }
-    console.log('Closing report:', reportDest);
+  this.finalizeReporting = function(callback) {
+    console.log('Closing report: ' +
+      buildReportOrScrInlineUrl(path.join(opts.dest, opts.filename)));
 
     fs.appendFile(
         path.join(opts.dest, opts.filename),
@@ -472,9 +474,15 @@ function Jasmine2ScreenShotReporter(opts) {
             console.error('Error writing to file:' + path.join(opts.dest, opts.filename));
             throw err;
           }
-          callback();
+          if (callback) {
+            callback();
+          }
         }
     );
+  };
+
+  this.afterLaunch = function(callback) {
+    return this.finalizeReporting(callback);
   };
 
   this.jasmineStarted = function(suiteInfo) {
@@ -534,6 +542,7 @@ function Jasmine2ScreenShotReporter(opts) {
   };
 
   this.specDone = function(spec) {
+    var self = this;
     spec.filename = {};
     spec = getSpecClone(spec);
     spec._finished = Date.now();
@@ -575,22 +584,19 @@ function Jasmine2ScreenShotReporter(opts) {
             }
             writeScreenshot(png, spec.filename[key]);
             if (spec.status === 'failed') {
-              if (process.env.BUILD_URL) {
-                lastTakenScrPath = process.env.BUILD_URL + 'artifact/' + opts.dest + spec.filename[key];
-              } else {
-                lastTakenScrPath = opts.dest + spec.filename[key];
-              }
-              console.log('Screenshot: "' + lastTakenScrPath + '"');
+              console.log('Screenshot: ' +
+                buildReportOrScrInlineUrl(opts.dest + spec.filename[key]));
             }
           });
         });
       }, function(err) {
         if (err) {
           console.error('Error taking screenshot, session probably closed.');
-          console.log('Previous screenshot taken: ' + lastTakenScrPath);
+          console.log('Previous screenshot: ' + lastTakenScrPath);
           if (opts.throwTakeScreenShotError) {
             throw err;
           }
+          // self.finalizeReporting();
         }
       });
     });
