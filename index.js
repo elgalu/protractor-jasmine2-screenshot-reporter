@@ -415,7 +415,13 @@ function Jasmine2ScreenShotReporter(opts) {
   }
 
   this.beforeLaunch = function(callback) {
-    console.log('Report destination:  ', path.join(opts.dest, opts.filename));
+    var reportDest;
+    if (process.env.BUILD_URL) {
+      reportDest = process.env.BUILD_URL + 'artifact/' + path.join(opts.dest, opts.filename);
+    } else {
+      reportDest = path.join(opts.dest, opts.filename);
+    }
+    console.log('Report destination:', reportDest);
 
     var cssLinks = getCssLinks(opts.userCss);
     var summaryQuickLinks = opts.showQuickLinks ? addQuickLinks(): '';
@@ -449,7 +455,13 @@ function Jasmine2ScreenShotReporter(opts) {
   };
 
   this.afterLaunch = function(callback) {
-    // console.log('Closing report');
+    var reportDest;
+    if (process.env.BUILD_URL) {
+      reportDest = process.env.BUILD_URL + 'artifact/' + path.join(opts.dest, opts.filename);
+    } else {
+      reportDest = path.join(opts.dest, opts.filename);
+    }
+    console.log('Closing report:', reportDest);
 
     fs.appendFile(
         path.join(opts.dest, opts.filename),
